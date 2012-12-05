@@ -1,9 +1,12 @@
 package reactive
 
 sealed abstract class Js[A] {
-    def map[B](body : Js[A] => Js[B]) = Let(this, body)
-    def flatMap[B](body : Js[A] => Js[B]) = Let(this, body)
+    def map[B](body : Js[A] => Js[B]) : Js[B] = Let(this, body)
+    def flatMap[B](body : Js[A] => Js[B]) : Js[B] = Let(this, body)
 }
+
+class JsObject[A] extends Js[A]
+
 case class Binary[A, B, C](operator : BinaryOperator[A, B, C], a : Js[A], b : Js[B]) extends Js[C]
 case class Unary[A, B](operator : UnaryOperator[A, B], a : Js[A]) extends Js[B]
 case class Nullary[A](operator : NullaryOperator[A]) extends Js[A]
@@ -13,6 +16,7 @@ case class Let[A, B](value : Js[A], body : Js[A] => Js[B]) extends Js[B]
 case class Lambda[A, B](body : Js[A] => Js[B]) extends Js[A => B]
 case class Apply[A, B](function : Js[A => B], argument : Js[A]) extends Js[B]
 case class Tag[A](name : String) extends Js[A]
+case class GetField[A, B](term : Js[A], name : String) extends Js[B]
 case class JavaScript0[A](code : String) extends Js[A]
 case class JavaScript1[A, B](a : Js[A], code : String => String) extends Js[B]
 case class JavaScript2[A, B, C](a : Js[A], b : Js[B], code : String => String => String) extends Js[C]
@@ -124,6 +128,16 @@ class JavaScript {
                 topLevel.put(definition, fromTerm(definition.term))
             }
             definition.module.name + "." + topLevelNames.get(definition)
+        case o : JsObject[_] =>
+            "{" +
+            (for(m <- o.getClass.getMethods
+                if !m.getName.contains("$")
+                    && m.getParameterTypes.isEmpty
+                    && classOf[Js[_]].isAssignableFrom(m.getReturnType)) yield {
+                "\"" + m.getName + "\": " + fromTerm(m.invoke(o).asInstanceOf[Js[_]])
+            }).mkString(", ") +
+            "}"
+        case GetField(target, name) => fromTerm(target) + "[\"" + name + "\"]"
         case JavaScript0(code) => fromScope(term)
         case JavaScript1(a, code) => fromScope(term)
         case JavaScript2(a, b, code) => fromScope(term)
@@ -193,6 +207,10 @@ class JavaScript {
     }
 }
 
+object JavaScript {
+    def apply[A](term : Js[A]) : String = (new JavaScript).apply(term)
+}
+
 import Js._
 
 object FlapJax extends JsModule {
@@ -221,8 +239,13 @@ object FlapJax extends JsModule {
     }
 }
 
-object Example {
+case class Point(x : Js[Double], y : Js[Double]) extends JsObject[Point]
 
+object Point {
+    implicit def toPoint(p : Js[Point]) = Point(GetField(p, "x"), GetField(p, "y"))
+}
+
+object Example {
     def main(arguments : Array[String]) {
 
         val x : Js[Double] = for {
@@ -233,7 +256,13 @@ object Example {
             _ <- FlapJax.onClick
         } yield y
 
-        println((new JavaScript).apply(x))
+        println(JavaScript(x))
+
+        import Point._
+
+        println(JavaScript(for {
+            p <- Point(5, 20)
+            q <- p.copy(y = p.x / 2)
+        } yield p.x + q.y))
     }
 }
-
