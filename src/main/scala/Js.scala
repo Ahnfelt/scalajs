@@ -53,6 +53,11 @@ class NumberTerm(term : Js[Double]) {
 }
 
 object Js {
+    def apply[A, B]
+        (term : A, name : Option[String] = None)
+        (implicit module : JsModule, convert : A => Js[B]) : Js[B] =
+        new JsDefinition(convert(term), name, module)
+
     implicit def literalDouble(value : Double) = Nullary(NumberValue(value))
     implicit def literalInt(value : Int) = Nullary(NumberValue(value.toDouble))
     implicit def literalString(value : String) = Nullary(TextValue(value))
@@ -66,23 +71,16 @@ object Js {
     def recursive[A](value : Js[A] => Js[A]) : Js[A] = Recursive(value)
 }
 
-sealed class JsDefinition[A](
-    val term : Js[A],
-    val name : Option[String],
-    val module : JsModule
-    ) extends Js[A]
-
-object JsDefinition {
-    def apply[A, B]
-        (term : A, name : Option[String] = None)
-        (implicit module : JsModule, convert : A => Js[B]) : Js[B] =
-        new JsDefinition(convert(term), name, module)
-}
-
 abstract class JsModule(moduleName : Option[String] = None) {
     val name : String = moduleName.getOrElse(this.getClass.getSimpleName.replace("$", ""))
     implicit val implicitModule : JsModule = this
 }
+
+case class JsDefinition[A](
+    term : Js[A],
+    name : Option[String],
+    module : JsModule
+    ) extends Js[A]
 
 class JavaScript {
 
@@ -215,28 +213,24 @@ import Js._
 
 object FlapJax extends JsModule {
 
-    val alert : Js[String => Double] = JsDefinition {
-        (a : Js[String]) => JavaScript1[String, Double](a, x => "window.alert(" + x + ")")
+    val alert = Js { a : Js[String] =>
+        JavaScript1[String, Double](a, x => "window.alert(" + x + ")")
     }
 
-    val pi : Js[Double] = JsDefinition {
-        3.141593
+    val pi = Js { 3.141593 }
+
+    val increment : Js[Double => Double] = Js { x : Js[Double] =>
+        x + increment(pi)
     }
 
-    val increment : Js[Double => Double] = JsDefinition {
-        (x : Js[Double]) => x + increment(pi)
+    val greatest = Js { x : Js[Double] => y : Js[Double] =>
+        iff(x < y) { y } { x }
     }
 
-    val greatest : Js[Double => Double => Double] = JsDefinition {
-        (x : Js[Double]) => (y : Js[Double]) => iff(x < y) { y } { x }
-    }
-
-    val onClick : Js[Double => Double => Double] = JsDefinition {
-        (x : Js[Double]) => (y : Js[Double]) => for {
-            z <- x * y
-            q <- z + z
-        } yield q
-    }
+    val onClick = Js { x : Js[Double] => y : Js[Double] => for {
+        z <- x * y
+        q <- z + z
+    } yield q }
 }
 
 case class Point(x : Js[Double], y : Js[Double]) extends JsObject[Point]
