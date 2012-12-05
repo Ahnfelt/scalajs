@@ -1,4 +1,4 @@
-package reactive
+package scalajs
 
 sealed abstract class Js[A] {
     def map[B](body : Js[A] => Js[B]) : Js[B] = Let(this, body)
