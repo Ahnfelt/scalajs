@@ -3,9 +3,10 @@ package scalajs
 import Js._
 
 object Collection extends JsModule {
+
     val range = Js { (a : Js[Double], b : Js[Double]) => for {
-        array <- Array[Double]()
-        _ <- For(a, b, 1, { i =>
+        array <- ArrayLiteral[Double]()
+        _ <- For(a, b + 1, 1, { i =>
             Apply1(GetField[Double => Unit](array, "push"), i)
         })
     } yield array}

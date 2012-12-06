@@ -28,7 +28,7 @@ case class GetIndex[A, B](term : Js[_], index : Js[_]) extends Js[A]
 case class Global[A](name : String) extends Js[A]
 case class Assign[A](target : Js[A], value : Js[A]) extends Js[A]
 case class For(start : Js[Double], stop : Js[Double], step : Js[Double], body : Js[Double] => Js[Unit]) extends Js[Unit]
-case class Array[A](xs : Js[A]*) extends Js[Array[A]]
+case class ArrayLiteral[A](xs : Js[A]*) extends Js[Array[A]]
 case class Sequence[A](ignore : Js[_], term : Js[A]) extends Js[A]
 
 sealed abstract class BinaryOperator[A, B, C]
@@ -140,7 +140,7 @@ class JavaScript {
             case Binary(operator, a, b) => fromTerm(a) + " " + fromBinary(operator) + " " + fromTerm(b)
             case Unary(operator, a) => "-"
             case Nullary(operator) => fromNullary(operator)
-            case Array(elements @ _*) => "[" + elements.map(fromTerm).mkString(", ") + "]"
+            case ArrayLiteral(elements @ _*) => "[" + elements.map(fromTerm).mkString(", ") + "]"
             case If(condition, a, b) => "IF"
             case Recursive(body) =>
                 fromRecursiveFunction(body)
