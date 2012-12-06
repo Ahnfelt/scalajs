@@ -32,6 +32,7 @@ object Example {
             x <- p.each(f)
             y <- p.foldLeft[Double]((a : Js[Double], b : Js[Double]) => a + b, 0)
             z <- p(34)
+            w <- p.switch(0, a => a.length * 2)
         } yield y
 
         println()

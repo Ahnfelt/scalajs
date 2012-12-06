@@ -141,7 +141,7 @@ class JavaScript {
             case Unary(operator, a) => "-"
             case Nullary(operator) => fromNullary(operator)
             case ArrayLiteral(elements @ _*) => "[" + elements.map(fromTerm).mkString(", ") + "]"
-            case If(condition, a, b) => "IF"
+            case If(condition, a, b) => "((" + fromTerm(condition) + ") ? (" + fromTerm(a) + ") : (" + fromTerm(b) + "))"
             case Recursive(body) =>
                 fromRecursiveFunction(body)
             case Lambda1(body) =>
