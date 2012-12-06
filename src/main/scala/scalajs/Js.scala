@@ -88,6 +88,8 @@ object Js {
     implicit def toFunction4[A, B, C, D, E](term : Js[(A, B, C, D) => E]) = Apply4(term, _ : Js[A], _ : Js[B], _ : Js[C], _ : Js[D])
 
     implicit def toNumber(term : Js[Double]) = new NumberTerm(term)
+
+    def array[A](elements : Js[A]*) = ArrayLiteral(elements : _*)
     def iff[A](condition : Js[Boolean])(then : Js[A])(otherwise : Js[A]) : Js[A] = If(condition, then, otherwise)
     def recursive[A](value : Js[A] => Js[A]) : Js[A] = Recursive(value)
 }

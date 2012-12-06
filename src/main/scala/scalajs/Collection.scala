@@ -5,7 +5,7 @@ import Js._
 object Collection extends JsModule {
 
     val range = Js { (a : Js[Double], b : Js[Double]) => for {
-        array <- ArrayLiteral[Double]()
+        array <- array[Double]()
         _ <- For(a, b + 1, 1, { i =>
             Apply1(GetField[Double => Unit](array, "push"), i)
         })
