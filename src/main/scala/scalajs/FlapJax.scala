@@ -2,6 +2,8 @@ package scalajs
 
 import scalajs.Js._
 
+// TODO: Make this about FlapJax instead of random stuff ...
+
 object FlapJax extends JsModule {
 
     val alert = Js { a : Js[String] =>
