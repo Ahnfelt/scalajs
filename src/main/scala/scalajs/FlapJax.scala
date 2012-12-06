@@ -7,7 +7,7 @@ import scalajs.Js._
 object FlapJax extends JsModule {
 
     val alert = Js { a : Js[String] =>
-        JavaScript1[String, Double](a, x => "window.alert(" + x + ")")
+        GetField[String => Unit](Global("window"), "alert")(a)
     }
 
     val pi = Js { 3.141593 }

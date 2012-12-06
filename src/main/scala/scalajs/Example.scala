@@ -5,7 +5,7 @@ import scalajs.Geometry._
 import scalajs.Collection._
 
 object Example {
-    def main(arguments : Array[String]) {
+    def main(arguments : scala.Array[String]) {
 
         val test1 : Js[Double] = for {
             f <- recursive[Double => Double](f => (a : Js[Double]) => a + f(42))
@@ -31,6 +31,7 @@ object Example {
             f <- (x : Js[Double]) => x * 2
             x <- p.each(f)
             y <- p.foldLeft[Double]((a : Js[Double], b : Js[Double]) => a + b, 0)
+            z <- p(34)
         } yield y
 
         println()

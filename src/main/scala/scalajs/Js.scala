@@ -7,7 +7,6 @@ sealed abstract class Js[A] {
 
 class JsObject[A] extends Js[A]
 
-case class Sequence[A](ignore : Js[_], term : Js[A]) extends Js[A]
 case class Binary[A, B, C](operator : BinaryOperator[A, B, C], a : Js[A], b : Js[B]) extends Js[C]
 case class Unary[A, B](operator : UnaryOperator[A, B], a : Js[A]) extends Js[B]
 case class Nullary[A](operator : NullaryOperator[A]) extends Js[A]
@@ -22,19 +21,15 @@ case class Apply1[A, B](function : Js[A => B], argument1 : Js[A]) extends Js[B]
 case class Apply2[A, B, C](function : Js[(A, B) => C], argument1 : Js[A], argument2 : Js[B]) extends Js[C]
 case class Apply3[A, B, C, D](function : Js[(A, B, C) => D], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C]) extends Js[D]
 case class Apply4[A, B, C, D, E](function : Js[(A, B, C, D) => E], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C], argument4 : Js[D]) extends Js[E]
-case class Tag[A](name : String) extends Js[A]
-case class GetField[A, B](term : Js[A], name : String) extends Js[B]
-case class JavaScript0[A](code : String) extends Js[A]
-case class JavaScript1[A, B](a : Js[A], code : String => String) extends Js[B]
-case class JavaScript2[A, B, C](a : Js[A], b : Js[B], code : String => String => String) extends Js[C]
-case class JavaScript3[A, B, C, D](a : Js[A], b : Js[B], c : Js[C], code : String => String => String => String) extends Js[D]
-case class JavaScript4[A, B, C, D, E](a : Js[A], b : Js[B], c : Js[C], d : Js[D], code : String => String => String => String => String) extends Js[E]
 
-sealed abstract class Imperative[A]
-object Imperative {
-    case class For(start : Js[Double], stop : Js[Double], step : Js[Double], body : Js[Double] => Js[Unit]) extends Js[Unit]
-    case class Array[A](xs : Js[A]*) extends Js[scala.Array[A]]
-}
+case class Tag[A](name : String) extends Js[A]
+case class GetField[A](term : Js[_], name : String) extends Js[A]
+case class GetIndex[A, B](term : Js[_], index : Js[_]) extends Js[A]
+case class Global[A](name : String) extends Js[A]
+case class Assign[A](target : Js[A], value : Js[A]) extends Js[A]
+case class For(start : Js[Double], stop : Js[Double], step : Js[Double], body : Js[Double] => Js[Unit]) extends Js[Unit]
+case class Array[A](xs : Js[A]*) extends Js[Array[A]]
+case class Sequence[A](ignore : Js[_], term : Js[A]) extends Js[A]
 
 sealed abstract class BinaryOperator[A, B, C]
 case object Add extends BinaryOperator[Double, Double, Double]
@@ -145,7 +140,7 @@ class JavaScript {
             case Binary(operator, a, b) => fromTerm(a) + " " + fromBinary(operator) + " " + fromTerm(b)
             case Unary(operator, a) => "-"
             case Nullary(operator) => fromNullary(operator)
-            case Imperative.Array(elements @ _*) => "[" + elements.map(fromTerm).mkString(", ") + "]"
+            case Array(elements @ _*) => "[" + elements.map(fromTerm).mkString(", ") + "]"
             case If(condition, a, b) => "IF"
             case Recursive(body) =>
                 fromRecursiveFunction(body)
@@ -189,13 +184,11 @@ class JavaScript {
                     }).mkString(", ") +
                     "}"
             case GetField(target, name) => fromTerm(target) + "[\"" + name + "\"]"
-            case JavaScript0(code) => fromScope(term)
-            case JavaScript1(a, code) => fromScope(term)
-            case JavaScript2(a, b, code) => fromScope(term)
-            case JavaScript3(a, b, c, code) => fromScope(term)
-            case JavaScript4(a, b, c, d, code) => fromScope(term)
+            case GetIndex(target, index) => fromTerm(target) + "[" + fromTerm(index) + "]"
+            case Global(name) => name
+            case Assign(target, value) => fromTerm(target) + " = " + fromTerm(value)
             case Let(_, _) => scoped(term)
-            case Imperative.For(_, _, _, _) => scoped(term)
+            case For(_, _, _, _) => scoped(term)
             case Sequence(_, _) => scoped(term)
         }
     }
@@ -215,31 +208,11 @@ class JavaScript {
         case Let(value, body) =>
             val (x, c) = ensureTag(value)
             c + fromScope(body(x))
-        case Imperative.For(start, stop, step, body) =>
+        case For(start, stop, step, body) =>
             val x = fresh
             "for(var " + x + " = " + fromTerm(start) + "; x < " + fromTerm(stop) + "; x += " ++ fromTerm(step) + ") {\n" +
             fromScope(body(Tag(x)), false) + "\n" +
             "}"
-        case JavaScript0(code) =>
-            code
-        case JavaScript1(a, code) =>
-            val (Tag(ax), as) = ensureTag(a)
-            as + code(ax)
-        case JavaScript2(a, b, code) =>
-            val (Tag(ax), as) = ensureTag(a)
-            val (Tag(bx), bs) = ensureTag(b)
-            as + bs + code(ax)(bx)
-        case JavaScript3(a, b, c, code) =>
-            val (Tag(ax), as) = ensureTag(a)
-            val (Tag(bx), bs) = ensureTag(b)
-            val (Tag(cx), cs) = ensureTag(c)
-            as + bs + cs + code(ax)(bx)(cx)
-        case JavaScript4(a, b, c, d, code) =>
-            val (Tag(ax), as) = ensureTag(a)
-            val (Tag(bx), bs) = ensureTag(b)
-            val (Tag(cx), cs) = ensureTag(c)
-            val (Tag(dx), ds) = ensureTag(d)
-            as + bs + cs + ds + code(ax)(bx)(cx)(dx)
         case _ => (if(returns) "return " else "") + fromTerm(term)
     }
 

@@ -1,10 +1,12 @@
 package scalajs
 
+import Js._
+
 object Collection extends JsModule {
     val range = Js { (a : Js[Double], b : Js[Double]) => for {
-        array <- Imperative.Array[Double]()
-        _ <- Imperative.For(a, b, 1, { i =>
-            GetField[Array[Double], Double => Unit](array, "push")(i)
+        array <- Array[Double]()
+        _ <- For(a, b, 1, { i =>
+            Apply1(GetField[Double => Unit](array, "push"), i)
         })
     } yield array}
 
@@ -16,6 +18,7 @@ object Collection extends JsModule {
         def foldRight[B](f : Js[(A, B) => B], x : Js[B]) : Js[Array[B]] = Apply2[(A, B) => B, B, Array[B]](GetField(term, "reduceRight"), f, x)
         def all(f : Js[A => Boolean]) : Js[Boolean] = Apply1[A => Boolean, Boolean](GetField(term, "every"), f)
         def any(f : Js[A => Boolean]) : Js[Boolean] = Apply1[A => Boolean, Boolean](GetField(term, "some"), f)
+        def apply(i : Js[Double]) : Js[A] = GetIndex(term, i)
     }
 
     implicit def toArray[A](term : Js[Array[A]]) : JsArray[A] = JsArray(term)
