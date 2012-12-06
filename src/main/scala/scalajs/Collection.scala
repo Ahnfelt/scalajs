@@ -11,7 +11,7 @@ object Collection extends JsModule {
         })
     } yield array}
 
-    case class JsArray[A](term : Js[Array[A]]) extends JsObject[Array[A]] {
+    implicit def toArray[A](term : Js[Array[A]]) = new {
         def each[B](f : Js[A => B]) : Js[Unit] = Apply1[A => B, Unit](GetField(term, "forEach"), f)
         def select[B](f : Js[A => B]) : Js[Array[B]] = Apply1[A => B, Array[B]](GetField(term, "map"), f)
         def where(f : Js[A => Boolean]) : Js[Array[A]] = Apply1[A => Boolean, Array[A]](GetField(term, "filter"), f)
@@ -23,7 +23,5 @@ object Collection extends JsModule {
         def apply(i : Js[Double]) : Js[A] = GetIndex(term, i)
         def switch[B](caseEmpty : Js[B], caseNonEmpty : Js[Array[A]] => Js[B]) : Js[B] = If(GetField(term, "length"), caseNonEmpty(term), caseEmpty)
     }
-
-    implicit def toArray[A](term : Js[Array[A]]) : JsArray[A] = JsArray(term)
 }
 
