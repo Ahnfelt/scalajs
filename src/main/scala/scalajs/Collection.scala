@@ -9,6 +9,7 @@ object Collection extends JsModule {
     } yield array}
 
     case class JsArray[A](term : Js[Array[A]]) extends JsObject[Array[A]] {
+        def each[B](f : Js[A => B]) : Js[Unit] = Apply1[A => B, Unit](GetField(term, "forEach"), f)
         def select[B](f : Js[A => B]) : Js[Array[B]] = Apply1[A => B, Array[B]](GetField(term, "map"), f)
         def where(f : Js[A => Boolean]) : Js[Array[A]] = Apply1[A => Boolean, Array[A]](GetField(term, "filter"), f)
         def foldLeft[B](f : Js[(B, A) => B], x : Js[B]) : Js[Array[B]] = Apply2[(B, A) => B, B, Array[B]](GetField(term, "reduce"), f, x)

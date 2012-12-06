@@ -7,6 +7,7 @@ sealed abstract class Js[A] {
 
 class JsObject[A] extends Js[A]
 
+case class Sequence[A](ignore : Js[_], term : Js[A]) extends Js[A]
 case class Binary[A, B, C](operator : BinaryOperator[A, B, C], a : Js[A], b : Js[B]) extends Js[C]
 case class Unary[A, B](operator : UnaryOperator[A, B], a : Js[A]) extends Js[B]
 case class Nullary[A](operator : NullaryOperator[A]) extends Js[A]
@@ -195,6 +196,7 @@ class JavaScript {
             case JavaScript4(a, b, c, d, code) => fromScope(term)
             case Let(_, _) => scoped(term)
             case Imperative.For(_, _, _, _) => scoped(term)
+            case Sequence(_, _) => scoped(term)
         }
     }
 
@@ -208,6 +210,8 @@ class JavaScript {
     def scoped[A](term : Js[A]) : String = "(function() {\n" + fromScope(term) + "\n})()"
 
     def fromScope[A](term : Js[A], returns : Boolean = true) : String = term match {
+        case Sequence(a, b) =>
+            fromScope(a, false) + ";\n" + fromScope(b, returns)
         case Let(value, body) =>
             val (x, c) = ensureTag(value)
             c + fromScope(body(x))

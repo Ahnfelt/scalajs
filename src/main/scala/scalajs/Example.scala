@@ -29,7 +29,7 @@ object Example {
         val test3 = for {
             p <- range(0, 10)
             f <- (x : Js[Double]) => x * 2
-            x <- p.select(f)
+            x <- p.each(f)
             y <- p.foldLeft[Double]((a : Js[Double], b : Js[Double]) => a + b, 0)
         } yield y
 
