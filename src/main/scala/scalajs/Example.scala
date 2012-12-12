@@ -3,6 +3,7 @@ package scalajs
 import scalajs.Js._
 import scalajs.Geometry._
 import scalajs.Collection._
+import scalajs.Pattern._
 
 object Example {
     def main(arguments : scala.Array[String]) {
@@ -29,7 +30,7 @@ object Example {
         val test3 = for {
             p <- range(0, 10)
             f <- (x : Js[Double]) => x * 2
-            x <- p.each(f)
+            x <- p.select(f)
             y <- p.foldLeft[Double]((a : Js[Double], b : Js[Double]) => a + b, 0)
             z <- p(34)
             w <- p.switch(0, a => a.length * 2)
@@ -37,5 +38,16 @@ object Example {
 
         println()
         println(JavaScript(test3))
+
+        val test4 = for {
+            a <- Some(42 : Js[Double]) : Js[Option[Double]]
+            b <- a.switch {
+                case Some(x) => 2 * 2
+                case None => 0
+            }
+        } yield b
+
+        println()
+        println(JavaScript(test4))
     }
 }

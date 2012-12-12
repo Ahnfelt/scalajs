@@ -4,7 +4,9 @@ import Js._
 
 object Collection extends JsModule {
 
-    val range = Js { (a : Js[Double], b : Js[Double]) => for {
+    // Arrays
+
+    val range : Js[(Double, Double) => Array[Double]] = Js { (a : Js[Double], b : Js[Double]) => for {
         array <- array[Double]()
         _ <- For(a, b + 1, 1, { i =>
             Apply1(GetField[Double => Unit](array, "push"), i)
@@ -23,5 +25,6 @@ object Collection extends JsModule {
         def apply(i : Js[Double]) : Js[A] = GetIndex(term, i)
         def switch[B](caseEmpty : Js[B], caseNonEmpty : Js[Array[A]] => Js[B]) : Js[B] = If(GetField(term, "length"), caseNonEmpty(term), caseEmpty)
     }
+
 }
 

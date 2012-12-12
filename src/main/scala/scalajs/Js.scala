@@ -5,7 +5,7 @@ sealed abstract class Js[A] {
     def flatMap[B](body : Js[A] => Js[B]) : Js[B] = Let(this, body)
 }
 
-class JsObject[A] extends Js[A]
+abstract class JsObject[A] extends Js[A]
 
 case class Binary[A, B, C](operator : BinaryOperator[A, B, C], a : Js[A], b : Js[B]) extends Js[C]
 case class Unary[A, B](operator : UnaryOperator[A, B], a : Js[A]) extends Js[B]
@@ -36,6 +36,7 @@ case object Add extends BinaryOperator[Double, Double, Double]
 case object Subtract extends BinaryOperator[Double, Double, Double]
 case object Multiply extends BinaryOperator[Double, Double, Double]
 case object Divide extends BinaryOperator[Double, Double, Double]
+case object Equal extends BinaryOperator[String, String, Boolean]
 case object Less extends BinaryOperator[Double, Double, Boolean]
 case object And extends BinaryOperator[Boolean, Boolean, Boolean]
 case object Or extends BinaryOperator[Boolean, Boolean, Boolean]
@@ -212,7 +213,7 @@ class JavaScript {
             c + fromScope(body(x))
         case For(start, stop, step, body) =>
             val x = fresh
-            "for(var " + x + " = " + fromTerm(start) + "; x < " + fromTerm(stop) + "; x += " ++ fromTerm(step) + ") {\n" +
+            "for(var " + x + " = " + fromTerm(start) + "; " + x + " < " + fromTerm(stop) + "; " + x + " += " ++ fromTerm(step) + ") {\n" +
             fromScope(body(Tag(x)), false) + "\n" +
             "}"
         case _ => (if(returns) "return " else "") + fromTerm(term)
@@ -237,6 +238,7 @@ class JavaScript {
         case Subtract => "-"
         case Multiply => "*"
         case Divide => "/"
+        case Equal => "==="
         case Less => "<"
         case And => "&&"
         case Or => "||"
@@ -245,7 +247,7 @@ class JavaScript {
     def fromNullary[A](term : NullaryOperator[A]) : String = term match {
         case Null => "null"
         case NumberValue(value) => value.toString
-        case TextValue(value) => value.toString
+        case TextValue(value) => "\"" + value.toString.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
     }
 }
 
