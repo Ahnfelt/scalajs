@@ -1,9 +1,11 @@
-package scalajs
+package scalajs.examples
 
 import scalajs.Js._
-import scalajs.Geometry._
-import scalajs.Collection._
-import scalajs.Pattern._
+import scalajs.{JavaScript, Js}
+import scalajs.library.FlapJax
+import scalajs.library.Pattern._
+import scalajs.library.Geometry._
+import scalajs.library.Collection._
 
 object Example {
     def main(arguments : scala.Array[String]) {
@@ -41,9 +43,9 @@ object Example {
 
         val test4 = for {
             a <- Full(42)
-            b <- a.switch {
+            b <- a switch {
                 case Full(x) => x * 2
-                case Empty() => 0
+                case Empty => 0
             }
         } yield b
 

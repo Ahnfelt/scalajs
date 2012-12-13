@@ -1,54 +1,60 @@
 package scalajs
 
+import Terms._
+
 sealed abstract class Js[A] {
     def map[B](body : Js[A] => Js[B]) : Js[B] = Let(this, body)
     def flatMap[B](body : Js[A] => Js[B]) : Js[B] = Let(this, body)
 }
 
-abstract class JsObject[A] extends Js[A]
+abstract class JsObject
 
-case class Binary[A, B, C](operator : BinaryOperator[A, B, C], a : Js[A], b : Js[B]) extends Js[C]
-case class Unary[A, B](operator : UnaryOperator[A, B], a : Js[A]) extends Js[B]
-case class Nullary[A](operator : NullaryOperator[A]) extends Js[A]
-case class If[A](condition : Js[Boolean], then : Js[A], otherwise : Js[A]) extends Js[A]
-case class Recursive[A](value : Js[A] => Js[A]) extends Js[A]
-case class Let[A, B](value : Js[A], body : Js[A] => Js[B]) extends Js[B]
-case class Lambda1[A, B](body : Js[A] => Js[B]) extends Js[A => B]
-case class Lambda2[A, B, C](body : (Js[A], Js[B]) => Js[C]) extends Js[(A, B) => C]
-case class Lambda3[A, B, C, D](body : (Js[A], Js[B], Js[C]) => Js[D]) extends Js[(A, B, C) => C]
-case class Lambda4[A, B, C, D, E](body : (Js[A], Js[B], Js[C], Js[D]) => Js[E]) extends Js[(A, B, C, D) => E]
-case class Apply1[A, B](function : Js[A => B], argument1 : Js[A]) extends Js[B]
-case class Apply2[A, B, C](function : Js[(A, B) => C], argument1 : Js[A], argument2 : Js[B]) extends Js[C]
-case class Apply3[A, B, C, D](function : Js[(A, B, C) => D], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C]) extends Js[D]
-case class Apply4[A, B, C, D, E](function : Js[(A, B, C, D) => E], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C], argument4 : Js[D]) extends Js[E]
+/*private*/ object Terms {
+    case class Binary[A, B, C](operator : BinaryOperator[A, B, C], a : Js[A], b : Js[B]) extends Js[C]
+    case class Unary[A, B](operator : UnaryOperator[A, B], a : Js[A]) extends Js[B]
+    case class Nullary[A](operator : NullaryOperator[A]) extends Js[A]
+    case class If[A](condition : Js[Boolean], then : Js[A], otherwise : Js[A]) extends Js[A]
+    case class Recursive[A](value : Js[A] => Js[A]) extends Js[A]
+    case class Let[A, B](value : Js[A], body : Js[A] => Js[B]) extends Js[B]
+    case class Lambda1[A, B](body : Js[A] => Js[B]) extends Js[A => B]
+    case class Lambda2[A, B, C](body : (Js[A], Js[B]) => Js[C]) extends Js[(A, B) => C]
+    case class Lambda3[A, B, C, D](body : (Js[A], Js[B], Js[C]) => Js[D]) extends Js[(A, B, C) => D]
+    case class Lambda4[A, B, C, D, E](body : (Js[A], Js[B], Js[C], Js[D]) => Js[E]) extends Js[(A, B, C, D) => E]
+    case class Apply1[A, B](function : Js[A => B], argument1 : Js[A]) extends Js[B]
+    case class Apply2[A, B, C](function : Js[(A, B) => C], argument1 : Js[A], argument2 : Js[B]) extends Js[C]
+    case class Apply3[A, B, C, D](function : Js[(A, B, C) => D], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C]) extends Js[D]
+    case class Apply4[A, B, C, D, E](function : Js[(A, B, C, D) => E], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C], argument4 : Js[D]) extends Js[E]
+    case class JsRecord[A <: JsObject](value : A) extends Js[A]
 
-case class Tag[A](name : String) extends Js[A]
-case class GetField[A](term : Js[_], name : String) extends Js[A]
-case class GetIndex[A, B](term : Js[_], index : Js[_]) extends Js[A]
-case class Global[A](name : String) extends Js[A]
-case class Assign[A](target : Js[A], value : Js[A]) extends Js[A]
-case class For(start : Js[Double], stop : Js[Double], step : Js[Double], body : Js[Double] => Js[Unit]) extends Js[Unit]
-case class ArrayLiteral[A](xs : Js[A]*) extends Js[Array[A]]
-case class Sequence[A](ignore : Js[_], term : Js[A]) extends Js[A]
+    case class Tag[A](name : String) extends Js[A]
+    case class GetField[A](term : Js[_], name : String) extends Js[A]
+    case class GetIndex[A, B](term : Js[_], index : Js[_]) extends Js[A]
+    case class Global[A](name : String) extends Js[A]
+    case class Assign[A](target : Js[A], value : Js[A]) extends Js[A]
+    case class Throw[A, B](exception : Js[A]) extends Js[B]
+    case class For(start : Js[Double], stop : Js[Double], step : Js[Double], body : Js[Double] => Js[Unit]) extends Js[Unit]
+    case class ArrayLiteral[A](xs : Js[A]*) extends Js[Array[A]]
+    case class Sequence[A](ignore : Js[_], term : Js[A]) extends Js[A]
 
-sealed abstract class BinaryOperator[A, B, C]
-case object Add extends BinaryOperator[Double, Double, Double]
-case object Subtract extends BinaryOperator[Double, Double, Double]
-case object Multiply extends BinaryOperator[Double, Double, Double]
-case object Divide extends BinaryOperator[Double, Double, Double]
-case object Equal extends BinaryOperator[String, String, Boolean]
-case object Less extends BinaryOperator[Double, Double, Boolean]
-case object And extends BinaryOperator[Boolean, Boolean, Boolean]
-case object Or extends BinaryOperator[Boolean, Boolean, Boolean]
+    sealed abstract class BinaryOperator[A, B, C]
+    case object Add extends BinaryOperator[Double, Double, Double]
+    case object Subtract extends BinaryOperator[Double, Double, Double]
+    case object Multiply extends BinaryOperator[Double, Double, Double]
+    case object Divide extends BinaryOperator[Double, Double, Double]
+    case object Equal extends BinaryOperator[String, String, Boolean]
+    case object Less extends BinaryOperator[Double, Double, Boolean]
+    case object And extends BinaryOperator[Boolean, Boolean, Boolean]
+    case object Or extends BinaryOperator[Boolean, Boolean, Boolean]
 
-sealed abstract class UnaryOperator[A, B]
-case object Negate extends UnaryOperator[Double, Double]
-case object Not extends UnaryOperator[Boolean, Boolean]
+    sealed abstract class UnaryOperator[A, B]
+    case object Negate extends UnaryOperator[Double, Double]
+    case object Not extends UnaryOperator[Boolean, Boolean]
 
-sealed abstract class NullaryOperator[A]
-case object Null extends NullaryOperator[Unit]
-case class NumberValue(value : Double) extends NullaryOperator[Double]
-case class TextValue(value : String) extends NullaryOperator[String]
+    sealed abstract class NullaryOperator[A]
+    case object Null extends NullaryOperator[Unit]
+    case class NumberValue(value : Double) extends NullaryOperator[Double]
+    case class TextValue(value : String) extends NullaryOperator[String]
+}
 
 class FunctionTerm[A, B](term : Js[A => B]) {
     def apply(argument : Js[A]) : Js[B] = Apply1(term, argument)
@@ -69,28 +75,40 @@ object Js {
         new JsDefinition(convert(term), name, module)
 
     implicit def literalUnit(value : Unit) : Js[Unit] = Nullary(Null)
-    implicit def literalDouble(value : Double) = Nullary(NumberValue(value))
-    implicit def literalInt(value : Int) = Nullary(NumberValue(value.toDouble))
-    implicit def literalString(value : String) = Nullary(TextValue(value))
+    implicit def literalDouble(value : Double) : Js[Double] = Nullary(NumberValue(value))
+    implicit def literalInt(value : Int) : Js[Double] = Nullary(NumberValue(value.toDouble))
+    implicit def literalString(value : String) : Js[String] = Nullary(TextValue(value))
 
-    implicit def function1[A, B](value : Js[A] => Js[B]) = Lambda1(value)
+    implicit def function1[A, B](value : Js[A] => Js[B]) : Js[A => B] = Lambda1(value)
 
-    implicit def curriedFunction2[A, B, C](value : Js[A] => Js[B] => Js[C]) = Lambda1((a : Js[A]) => Lambda1(value(a)))
-    implicit def curriedFunction3[A, B, C, D](value : Js[A] => Js[B] => Js[C] => Js[D]) = Lambda1((a : Js[A]) => Lambda1((b : Js[B]) => Lambda1(value(a)(b))))
-    implicit def curriedFunction4[A, B, C, D, E](value : Js[A] => Js[B] => Js[C] => Js[D] => Js[E]) = Lambda1((a : Js[A]) => Lambda1((b : Js[B]) => Lambda1((c : Js[C]) => Lambda1(value(a)(b)(c)))))
+    implicit def curriedFunction2[A, B, C](value : Js[A] => Js[B] => Js[C]) : Js[A => B => C] =
+        Lambda1((a : Js[A]) => Lambda1(value(a)))
+    implicit def curriedFunction3[A, B, C, D](value : Js[A] => Js[B] => Js[C] => Js[D]) : Js[A => B => C => D] =
+        Lambda1((a : Js[A]) => Lambda1((b : Js[B]) => Lambda1(value(a)(b))))
+    implicit def curriedFunction4[A, B, C, D, E](value : Js[A] => Js[B] => Js[C] => Js[D] => Js[E]) : Js[A => B => C => D => E] =
+        Lambda1((a : Js[A]) => Lambda1((b : Js[B]) => Lambda1((c : Js[C]) => Lambda1(value(a)(b)(c)))))
 
-    implicit def uncurriedFunction2[A, B, C](value : (Js[A], Js[B]) => Js[C]) = Lambda2(value)
-    implicit def uncurriedFunction3[A, B, C, D](value : (Js[A], Js[B], Js[C]) => Js[D]) = Lambda3(value)
-    implicit def uncurriedFunction4[A, B, C, D, E](value : (Js[A], Js[B], Js[C], Js[D]) => Js[E]) = Lambda4(value)
+    implicit def uncurriedFunction2[A, B, C](value : (Js[A], Js[B]) => Js[C]) : Js[(A, B) => C] =
+        Lambda2(value)
+    implicit def uncurriedFunction3[A, B, C, D](value : (Js[A], Js[B], Js[C]) => Js[D]) : Js[(A, B, C) => D] =
+        Lambda3(value)
+    implicit def uncurriedFunction4[A, B, C, D, E](value : (Js[A], Js[B], Js[C], Js[D]) => Js[E]) : Js[(A, B, C, D) => E] =
+        Lambda4(value)
 
-    implicit def toFunction1[A, B](term : Js[A => B]) = Apply1(term, _ : Js[A])
-    implicit def toFunction2[A, B, C](term : Js[(A, B) => C]) = Apply2(term, _ : Js[A], _ : Js[B])
-    implicit def toFunction3[A, B, C, D](term : Js[(A, B, C) => D]) = Apply3(term, _ : Js[A], _ : Js[B], _ : Js[C])
-    implicit def toFunction4[A, B, C, D, E](term : Js[(A, B, C, D) => E]) = Apply4(term, _ : Js[A], _ : Js[B], _ : Js[C], _ : Js[D])
+    implicit def toFunction1[A, B](term : Js[A => B]) : Js[A] => Js[B] =
+        Apply1(term, _ : Js[A])
+    implicit def toFunction2[A, B, C](term : Js[(A, B) => C]) : (Js[A], Js[B]) => Js[C] =
+        Apply2(term, _ : Js[A], _ : Js[B])
+    implicit def toFunction3[A, B, C, D](term : Js[(A, B, C) => D]) : (Js[A], Js[B], Js[C]) => Js[D] =
+        Apply3(term, _ : Js[A], _ : Js[B], _ : Js[C])
+    implicit def toFunction4[A, B, C, D, E](term : Js[(A, B, C, D) => E]) : (Js[A], Js[B], Js[C], Js[D]) => Js[E] =
+        Apply4(term, _ : Js[A], _ : Js[B], _ : Js[C], _ : Js[D])
 
     implicit def toNumber(term : Js[Double]) = new NumberTerm(term)
 
-    def array[A](elements : Js[A]*) = ArrayLiteral(elements : _*)
+    implicit def toObject[A <: JsObject](value : A) : Js[A] = JsRecord(value)
+
+    def array[A](elements : Js[A]*) : Js[Array[A]] = ArrayLiteral(elements : _*)
     def iff[A](condition : Js[Boolean])(then : Js[A])(otherwise : Js[A]) : Js[A] = If(condition, then, otherwise)
     def recursive[A](value : Js[A] => Js[A]) : Js[A] = Recursive(value)
 }
@@ -115,7 +133,7 @@ object JsAsync {
     def constant[R, A](n : A) : JsAsync[R, A] = JsAsync((k : A => R) => k(n))
 }
 
-class JavaScript {
+private class JavaScript {
 
     var topLevelList = List[JsDefinition[_]]()
     var topLevelNames = new java.util.IdentityHashMap[JsDefinition[_], String]()
@@ -177,10 +195,10 @@ class JavaScript {
                     topLevel.put(definition, fromTerm(definition.term))
                 }
                 definition.module.name + "." + topLevelNames.get(definition)
-            case o : JsObject[_] =>
+            case JsRecord(o) =>
                 "{" +
                     (for(m <- o.getClass.getMethods
-                         if !m.getName.contains("$") && m.getDeclaringClass != classOf[JsObject[_]]
+                         if !m.getName.contains("$") && m.getDeclaringClass != classOf[JsObject]
                              && m.getParameterTypes.isEmpty
                              && classOf[Js[_]].isAssignableFrom(m.getReturnType)) yield {
                         "\"" + m.getName + "\": " + fromTerm(m.invoke(o).asInstanceOf[Js[_]])
@@ -190,6 +208,7 @@ class JavaScript {
             case GetIndex(target, index) => fromTerm(target) + "[" + fromTerm(index) + "]"
             case Global(name) => name
             case Assign(target, value) => fromTerm(target) + " = " + fromTerm(value)
+            case Throw(_) => scoped(term)
             case Let(x @ Tag(_), f) => fromTerm(f(x))
             case Let(_, _) => scoped(term)
             case For(_, _, _, _) => scoped(term)
@@ -207,6 +226,7 @@ class JavaScript {
     def scoped[A](term : Js[A]) : String = "(function() {\n" + fromScope(term) + "\n})()"
 
     def fromScope[A](term : Js[A], returns : Boolean = true) : String = term match {
+        case Throw(a) => "throw " + fromTerm(a)
         case Sequence(a, b) =>
             fromScope(a, false) + ";\n" + fromScope(b, returns)
         case Let(value, body) =>

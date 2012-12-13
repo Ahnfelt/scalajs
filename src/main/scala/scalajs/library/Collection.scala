@@ -1,10 +1,15 @@
-package scalajs
+package scalajs.library
 
-import Js._
+import scalajs._
+import scalajs.Js._
+import scalajs.Terms._ // TODO: Get rid of this and make Terms private
 
 object Collection extends JsModule {
 
     // Arrays
+    def foo(x : Js[Double]) = x match {
+        case GetField(_, _) => ""
+    }
 
     val range : Js[(Double, Double) => Array[Double]] = Js { (a : Js[Double], b : Js[Double]) => for {
         array <- array[Double]()
