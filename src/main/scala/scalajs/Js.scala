@@ -56,11 +56,11 @@ abstract class JsObject
     case class TextValue(value : String) extends NullaryOperator[String]
 }
 
-class FunctionTerm[A, B](term : Js[A => B]) {
+class JsFunction[A, B](term : Js[A => B]) {
     def apply(argument : Js[A]) : Js[B] = Apply1(term, argument)
 }
 
-class NumberTerm(term : Js[Double]) {
+class JsNumber(term : Js[Double]) {
     def +(that : Js[Double]) : Js[Double] = Binary(Add, term, that)
     def -(that : Js[Double]) : Js[Double] = Binary(Subtract, term, that)
     def *(that : Js[Double]) : Js[Double] = Binary(Multiply, term, that)
@@ -104,7 +104,7 @@ object Js {
     implicit def toFunction4[A, B, C, D, E](term : Js[(A, B, C, D) => E]) : (Js[A], Js[B], Js[C], Js[D]) => Js[E] =
         Apply4(term, _ : Js[A], _ : Js[B], _ : Js[C], _ : Js[D])
 
-    implicit def toNumber(term : Js[Double]) = new NumberTerm(term)
+    implicit def toNumber(term : Js[Double]) = new JsNumber(term)
 
     implicit def toObject[A <: JsObject](value : A) : Js[A] = JsRecord(value)
 
