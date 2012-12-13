@@ -40,10 +40,10 @@ object Example {
         println(JavaScript(test3))
 
         val test4 = for {
-            a <- Some(42 : Js[Double]) : Js[Option[Double]]
+            a <- Full(42)
             b <- a.switch {
-                case Some(x) => 2 * 2
-                case None => 0
+                case Full(x) => x * 2
+                case Empty() => 0
             }
         } yield b
 

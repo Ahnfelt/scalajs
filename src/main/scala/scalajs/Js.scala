@@ -190,6 +190,7 @@ class JavaScript {
             case GetIndex(target, index) => fromTerm(target) + "[" + fromTerm(index) + "]"
             case Global(name) => name
             case Assign(target, value) => fromTerm(target) + " = " + fromTerm(value)
+            case Let(x @ Tag(_), f) => fromTerm(f(x))
             case Let(_, _) => scoped(term)
             case For(_, _, _, _) => scoped(term)
             case Sequence(_, _) => scoped(term)
