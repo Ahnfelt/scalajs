@@ -9,7 +9,7 @@ sealed abstract class Js[A] {
 
 abstract class JsObject
 
-/*private*/ object Terms {
+private object Terms {
     case class Binary[A, B, C](operator : BinaryOperator[A, B, C], a : Js[A], b : Js[B]) extends Js[C]
     case class Unary[A, B](operator : UnaryOperator[A, B], a : Js[A]) extends Js[B]
     case class Nullary[A](operator : NullaryOperator[A]) extends Js[A]
@@ -108,9 +108,23 @@ object Js {
 
     implicit def toObject[A <: JsObject](value : A) : Js[A] = JsRecord(value)
 
+    implicit def toRecord(value : Js[_]) = new {
+        def ![A](label : String) : Js[A] = GetField(value, label)
+    }
+
+    implicit def toArray[A](value : Js[Array[A]]) = new {
+        def !!(index : Js[Double]) : Js[A] = GetIndex(value, index)
+    }
+
+    implicit def toGlobal(global : String) = new {
+        def !!![A](label : String) : Js[A] = Global(global) ! label
+    }
+
     def array[A](elements : Js[A]*) : Js[Array[A]] = ArrayLiteral(elements : _*)
     def iff[A](condition : Js[Boolean])(then : Js[A])(otherwise : Js[A]) : Js[A] = If(condition, then, otherwise)
+    def forLoop(start: Js[Double], stop: Js[Double], step: Js[Double], body: (Js[Double]) => Js[Unit]) : Js[Unit] = For(start, stop, step, body)
     def recursive[A](value : Js[A] => Js[A]) : Js[A] = Recursive(value)
+
 }
 
 abstract class JsModule(moduleName : Option[String] = None) {

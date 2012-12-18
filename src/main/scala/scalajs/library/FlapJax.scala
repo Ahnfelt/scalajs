@@ -1,17 +1,14 @@
 package scalajs.library
 
 import scalajs.Js._
-import scalajs.Terms._
 import scalajs.{Js, JsModule}
-
-// TODO: Get rid of this and make Terms private
 
 // TODO: Make this about FlapJax instead of random stuff ...
 
 object FlapJax extends JsModule {
 
     val alert = Js { a : Js[String] =>
-        GetField[String => Unit](Global("window"), "alert")(a)
+        ("window" !!! "alert" : Js[String => Unit])(a)
     }
 
     val pi = Js { 3.141593 }
