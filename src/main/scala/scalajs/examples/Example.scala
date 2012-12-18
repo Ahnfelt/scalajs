@@ -42,12 +42,17 @@ object Example {
         println(JavaScript(test3))
 
         val test4 = for {
-            a <- Full(42)
+            a <- some(42)
             b <- a switch {
-                case Full(x) => x * 2
-                case Empty => 0
+                case Some(x) => x + 2
+                case None => 0
             }
-        } yield b
+            c <- left(7)
+            d <- c switch {
+                case Left(x) => x
+                case Right(x) => 0
+            }
+        } yield d
 
         println()
         println(JavaScript(test4))

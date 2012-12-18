@@ -1,8 +1,10 @@
 package scalajs.library
 
-import scalajs._
 import scalajs.Js._
-import scalajs.Terms._ // TODO: Get rid of this and make Terms private
+import scalajs.Terms._
+import scalajs.{Js, JsModule}
+
+// TODO: Get rid of this and make Terms private
 
 // TODO: Make this about FlapJax instead of random stuff ...
 

@@ -24,7 +24,7 @@ abstract class JsObject
     case class Apply2[A, B, C](function : Js[(A, B) => C], argument1 : Js[A], argument2 : Js[B]) extends Js[C]
     case class Apply3[A, B, C, D](function : Js[(A, B, C) => D], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C]) extends Js[D]
     case class Apply4[A, B, C, D, E](function : Js[(A, B, C, D) => E], argument1 : Js[A], argument2 : Js[B], argument3 : Js[C], argument4 : Js[D]) extends Js[E]
-    case class JsRecord[A <: JsObject](value : A) extends Js[A]
+    case class JsRecord[A](value : JsObject) extends Js[A]
 
     case class Tag[A](name : String) extends Js[A]
     case class GetField[A](term : Js[_], name : String) extends Js[A]

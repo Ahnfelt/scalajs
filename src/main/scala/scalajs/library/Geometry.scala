@@ -1,7 +1,9 @@
 package scalajs.library
 
 import scalajs._
-import scalajs.Terms._ // TODO: Get rid of this and make Terms private
+import scalajs.Terms.GetField
+
+//import scalajs.Terms._ // TODO: Get rid of this and make Terms private
 
 object Geometry {
     case class Point(x : Js[Double], y : Js[Double]) extends JsObject
